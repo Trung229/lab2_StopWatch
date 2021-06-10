@@ -1,109 +1,88 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React,{useState,useEffect} from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState} from 'react';
+import clone from 'lodash/clone';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
   TouchableHighlight,
   FlatList,
 } from 'react-native';
-import {Stopwatch, Timer} from 'react-native-stopwatch-timer';
+import {Stopwatch} from 'react-native-stopwatch-timer';
 
+const Item = ({item}) => {
+  console.log('🚀 ~ file: App.js ~ line 14 ~ Item ~ item', item);
+  return (
+    <View style={styles.item}>
+      <Text style={styles.textItem}>{`Lap #${item.id}`}</Text>
+      <Text style={styles.textItem}>{`${item.time}`}</Text>
+    </View>
+  );
+};
 
 const App = () => {
-  const [isTimerStart, setIsTimerStart] = useState(false);
   const [isStopwatchStart, setIsStopwatchStart] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(90000);
-  const [resetTimer, setResetTimer] = useState(false);
   const [resetStopwatch, setResetStopwatch] = useState(false);
-  const [data, setData] = useState([]);
-  const [save, setSave] = useState("");
-
-  useEffect(() =>{
-    setData(data);
-  }, [data])
-
-  const Item =()=>{
-    return (
-      <Text></Text>
-    )
-  }
-
-  
-  const renderItem =({items})=>{
-      console.log(items)
-      return <Item></Item>
-  }
+  const [lap, setLap] = useState([]);
+  const [currentTime, setCurrentTime] = useState('');
+  const renderItem = ({item}) => <Item item={item} />;
   return (
-    
-       <View style={styles.container}>
-        <View style={styles.sectionStyle}>
-          <Stopwatch
-            laps
-            secs
-            start={isStopwatchStart}
-            //To start
-            reset={resetStopwatch}
-            //To reset
-            options={options}
-            //options for the styling
-            getTime={(time) => {
-              const myArr =[];
-              setSave(time);
-              if(resetStopwatch === true){
-                myArr.push({id:data.length + 1, save});
-                const newArr = data.concat(myArr);
-                setData(newArr);
-                setResetStopwatch(false);
-              }
-            }}
-          />
-         <View style={styles.containerButton}>
+    <View style={styles.container}>
+      <View style={styles.sectionStyle}>
+        <Stopwatch
+          laps
+          secs
+          start={isStopwatchStart}
+          reset={resetStopwatch}
+          options={options}
+          getTime={time => {
+            setCurrentTime(time);
+            if (resetStopwatch === true && currentTime) {
+              const oldLap = clone(lap);
+              setLap([
+                ...oldLap,
+                {id: oldLap?.length ?? 0 + 1, time: currentTime},
+              ]);
+              setResetStopwatch(false);
+            }
+          }}
+        />
+        <View style={styles.containerButton}>
           <TouchableHighlight
             onPress={() => {
               setIsStopwatchStart(false);
               setResetStopwatch(true);
             }}
-            style={styles.buttonView}
-            >
-            <Text style={styles.buttonText}>LAB</Text>
+            style={styles.buttonView}>
+            <Text style={styles.buttonText}>LAP</Text>
           </TouchableHighlight>
           <TouchableHighlight
             onPress={() => {
               setIsStopwatchStart(!isStopwatchStart);
               setResetStopwatch(false);
-              
             }}
-            style={[styles.buttonView, !isStopwatchStart ? styles.buttonStart : styles.buttonStop]}
-            >
-            <Text style={!isStopwatchStart ? styles.textStart : styles.textStop}>
+            style={[
+              styles.buttonView,
+              !isStopwatchStart ? styles.buttonStart : styles.buttonStop,
+            ]}>
+            <Text
+              style={!isStopwatchStart ? styles.textStart : styles.textStop}>
               {!isStopwatchStart ? 'START' : 'STOP'}
             </Text>
           </TouchableHighlight>
-         </View>
-         <View style={{backgroundColor:"orange", height: "10%"}}>
-         {
-           data.length !=0 && 
-           <FlatList
-          data={data}
-          renderItem={renderItem}
-          
-        ></FlatList>
-         }
-         </View>
+        </View>
+        <View>
+          {!!lap.length && (
+            <FlatList
+              style={styles.list}
+              data={lap}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+            />
+          )}
         </View>
       </View>
+    </View>
   );
 };
 
@@ -114,6 +93,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  list: {
+    marginTop: '40%',
+  },
+  item: {
+    backgroundColor: 'silver',
+    padding: 8,
+    marginVertical: 2,
+    marginHorizontal: 4,
+    display: 'flex',
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  textItem: {
+    fontSize: 20,
+  },
   title: {
     textAlign: 'center',
     fontSize: 20,
@@ -122,66 +117,60 @@ const styles = StyleSheet.create({
   },
   sectionStyle: {
     alignItems: 'center',
-    marginTop:200,
-    height:"100%",
-    width:"100%",
+    marginTop: 200,
+    height: '100%',
+    width: '100%',
     position: 'relative',
-
   },
   buttonText: {
-    fontSize: 20,
-    marginTop: 10,
-    
+    fontSize: 16,
   },
-  containerButton:{
+  containerButton: {
+    zIndex: 999,
     flexDirection: 'row',
-    width:'100%',
-    flex: 0.5,
-    justifyContent:'space-around',
-    marginTop:50,
+    width: '100%',
+    flex: 1,
+    justifyContent: 'space-around',
+    marginTop: 50,
   },
   buttonStop: {
-    borderColor:"red",
+    borderColor: 'red',
   },
-  buttonStart:{
-    borderColor:"green",
+  buttonStart: {
+    borderColor: 'green',
   },
-  textStop:{
-    color:'red',
-    fontSize:15,
+  textStop: {
+    color: 'red',
+    fontSize: 16,
   },
-  textStart:{
-    color:'green',
-    fontSize:15,
+  textStart: {
+    color: 'green',
+    fontSize: 16,
   },
-  buttonView:{
-    height:"30%",
-    minWidth:100,
-    padding:20,
-    borderRadius:200,
-    justifyContent:'center',
+  buttonView: {
+    height: 100,
+    width: 100,
+    padding: 20,
+    borderRadius: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth:2,
-    color:"violet"
-  
-  }
-
+    borderWidth: 2,
+    color: 'violet',
+  },
 });
 
 const options = {
   container: {
     padding: 5,
+    zIndex: 999,
     borderRadius: 5,
     width: '100%',
-    alignItems:'center',
-    
+    alignItems: 'center',
   },
   text: {
-    fontSize: 25,
-    color: '#FFF',
     marginLeft: 7,
-    fontSize:70,
-    color:'black',
+    fontSize: 70,
+    color: 'black',
   },
 };
 export default App;
