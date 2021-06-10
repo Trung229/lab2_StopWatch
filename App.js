@@ -28,8 +28,11 @@ const App = () => {
   const [resetTimer, setResetTimer] = useState(false);
   const [resetStopwatch, setResetStopwatch] = useState(false);
   const [data, setData] = useState([]);
-  const [save, setSave] = useState([])
+  const [save, setSave] = useState("");
 
+  useEffect(() =>{
+    setData(data);
+  }, [data])
 
   const Item =()=>{
     return (
@@ -38,8 +41,8 @@ const App = () => {
   }
 
   
-  const renderItem =({item})=>{
-    console.log(item.save)
+  const renderItem =({items})=>{
+      console.log(items)
       return <Item></Item>
   }
   return (
@@ -60,7 +63,8 @@ const App = () => {
               setSave(time);
               if(resetStopwatch === true){
                 myArr.push({id:data.length + 1, save});
-                setData(myArr.concat(data));
+                const newArr = data.concat(myArr);
+                setData(newArr);
                 setResetStopwatch(false);
               }
             }}
@@ -89,11 +93,14 @@ const App = () => {
           </TouchableHighlight>
          </View>
          <View style={{backgroundColor:"orange", height: "10%"}}>
-         <FlatList
-         data={save}
+         {
+           data.length !=0 && 
+           <FlatList
+          data={data}
           renderItem={renderItem}
           
         ></FlatList>
+         }
          </View>
         </View>
       </View>
